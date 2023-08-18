@@ -1,0 +1,74 @@
+services:
+  consumer:
+    image: tmather99/consumer
+    container_name: 'consumer'
+    build:
+      context: .
+      dockerfile: Consumer/Dockerfile
+    ports:
+      - "5000:80"
+    networks:
+      - dapr-dev
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:80
+
+  consumer-dapr:
+    image: "daprio/daprd:edge"
+    container_name: 'consumer-dapr'
+    command: [
+      "./daprd",
+      "--app-id", "checkout",
+      "--app-port", "80",
+      "--components-path", "/components"]
+    volumes:
+      - "../components:/components:ro"
+    depends_on:
+      - consumer
+    network_mode: "service:consumer"
+
+  producer:
+    image: tmather99/producer
+    container_name: 'producer'
+    build:
+      context: .
+      dockerfile: Producer/Dockerfile
+    volumes:
+      - "../components:/components"
+    ports:
+      - "5011:80"
+    networks:
+      - dapr-dev
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:80
+
+  producer-dapr:
+    image: "daprio/daprd:edge"
+    container_name: 'producer-dapr'
+    command: [
+      "./daprd",
+      "--app-id", "orderprocessing",
+      "--app-port", "80",
+      "--components-path", "/components"]
+    volumes:
+      - "../components:/components"
+    depends_on:
+      - producer
+    network_mode: "service:producer"
+
+  rabbitmq:
+    image: "bitnami/rabbitmq:latest"
+    container_name: 'rabbitmq'
+    hostname: 'pubsubqueue'
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      - RABBITMQ_USERNAME=user
+      - RABBITMQ_PASSWORD=bitnami
+    networks:
+      - dapr-dev
+
+networks:
+  dapr-dev:

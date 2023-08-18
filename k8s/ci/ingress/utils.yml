@@ -1,0 +1,21 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: utils-ingress  
+spec:
+  ingressClassName: nginx
+  tls:
+  - hosts:
+      - seq.assistdevops.com
+    secretName: assistdevops-tls   
+  rules:
+  - host: seq.assistdevops.com
+    http:
+      paths:      
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: seq-service
+            port: 
+              number: 80  

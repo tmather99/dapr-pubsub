@@ -1,0 +1,34 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: apps-ingress  
+spec:
+  ingressClassName: nginx
+  tls:
+  - hosts:
+      - consumer.assistdevops.com
+    secretName: assistdevops-tls   
+  - hosts:
+      - producer.assistdevops.com
+    secretName: assistdevops-tls   
+  rules:
+  - host: consumer.assistdevops.com
+    http:
+      paths:      
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: consumer-service
+            port: 
+              number: 80  
+  - host: producer.assistdevops.com
+    http:
+      paths:      
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: producer-service
+            port: 
+              number: 80  

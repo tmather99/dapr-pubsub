@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.appId }}-app
+spec:
+  selector:
+    matchLabels:
+      app: {{ .Values.appId }}-app
+  replicas: {{ .Values.replicas }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.appId }}-app
+      annotations:
+        dapr.io/enabled: "true"
+        dapr.io/app-id: "checkout"
+        dapr.io/app-port: "80"
+    spec:      
+      containers:
+      - name: {{ .Values.appId }}
+        image: {{ .Values.image.name }}:{{ .Values.image.tag }}
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 80
+        - containerPort: 9464
+        resources:
+          limits:
+            memory: "128Mi"
+            cpu: "200m"  
+        env:
+        - name: ASPNETCORE_ENVIRONMENT
+          value: "Development"        
+        - name: ASPNETCORE_URLS
+          value: "http://+:80"
+        - name: SEQ_ENDPOINT
+          value: http://seq-service.default.svc.cluster.local        

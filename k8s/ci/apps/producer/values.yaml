@@ -1,0 +1,7 @@
+appId: producer
+port: 80
+configmap:
+  name: producer-configmap-v1
+image:
+  name: tmather99/producer
+  tag: latest

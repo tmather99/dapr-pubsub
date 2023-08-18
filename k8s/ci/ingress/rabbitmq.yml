@@ -1,0 +1,21 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: rabbitmq-ingress  
+spec:
+  ingressClassName: nginx
+  tls:
+  - hosts:
+      - rabbitmq.assistdevops.com
+    secretName: assistdevops-tls   
+  rules:
+  - host: rabbitmq.assistdevops.com
+    http:
+      paths:      
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: rabbitmq
+            port: 
+              number: 15672  

@@ -1,0 +1,7 @@
+appId: consumer
+port: 80
+configmap:
+  name: consumer-configmap-v1
+image:
+  name: tmather99/consumer
+  tag: latest
