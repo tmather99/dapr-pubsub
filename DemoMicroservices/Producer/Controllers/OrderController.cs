@@ -20,6 +20,8 @@ namespace Producer.Controllers
         private readonly ILogger<OrderController> _logger;
         private readonly DaprClient _daprClient;
 
+        private Random rnd = new Random();
+
         public OrderController(ILogger<OrderController> logger, DaprClient daprClient)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -33,26 +35,27 @@ namespace Producer.Controllers
             return new List<string>();
         }
 
-        [HttpPost]
-        public async Task<IActionResult> OrderProduct(Messages.Models.OrderViewModel order)
+        [HttpHead]
+        public async Task<IActionResult> OrderProduct()
         {
             _logger.LogInformation("Post Order API");
+
+            var order = new Order
+            {
+                OrderId = Guid.NewGuid(),
+                OrderAmount = rnd.Next(1, 100),
+                OrderNumber = Guid.NewGuid().ToString(),
+                OrderDate = DateTime.UtcNow
+            };
 
             //Validate order placeholder
             try
             {
-                var orderMessage = new Order {
-                    OrderId = Guid.NewGuid(),
-                    OrderAmount = order.OrderAmount,
-                    OrderNumber = order.OrderNumber,
-                    OrderDate = DateTime.UtcNow
-                };
-
-                await _daprClient.PublishEventAsync(PUBSUB_NAME, TOPIC_NAME, orderMessage);
+                await _daprClient.PublishEventAsync(PUBSUB_NAME, TOPIC_NAME, order);
 
                 _logger.LogInformation(
                     "Send a message with Order ID {orderId}, {orderNumber}",
-                    orderMessage.OrderId, orderMessage.OrderNumber);
+                    order.OrderId, order.OrderNumber);
 
                 return Ok("Your order is processing.");
             }
@@ -65,20 +68,20 @@ namespace Producer.Controllers
             return BadRequest();
         }
 
-        [HttpPost("update")]
-        public async Task<IActionResult> UpdateOrderAsync(Messages.Models.OrderViewModel order, CancellationToken cancellationToken)
+        [HttpPost]
+        public async Task<IActionResult> UpdateOrderAsync(CancellationToken cancellationToken)
         {
-            _logger.LogInformation("Update Order number={orderNumber}, amount={amount}", order.OrderNumber, order.OrderAmount);
-
-            var orderMessage = new Order
+            var order = new Order
             {
                 OrderId = Guid.NewGuid(),
-                OrderAmount = order.OrderAmount,
-                OrderNumber = order.OrderNumber,
+                OrderAmount = rnd.Next(1, 100),
+                OrderNumber = Guid.NewGuid().ToString(),
                 OrderDate = DateTime.UtcNow
             };
 
-            var invokeRequest = _daprClient.CreateInvokeMethodRequest(HttpMethod.Post, "checkout", "update", orderMessage);
+            _logger.LogInformation("Update Order number={orderNumber}, amount={amount}", order.OrderNumber, order.OrderAmount);
+
+            var invokeRequest = _daprClient.CreateInvokeMethodRequest(HttpMethod.Post, "checkout", "update", order);
 
             var resp = await _daprClient.InvokeMethodWithResponseAsync(invokeRequest, cancellationToken);
 
