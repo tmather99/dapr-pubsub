@@ -43,7 +43,7 @@ kubectl logs $(kubectl get pods -l app=producer-app --output jsonpath='{.items[0
     docker-compose up
     ```
 + Using RabbitMQ:
-    Set PubSubName="order-pub-sub"
+    Set PubSubName="pubsub"
 
 + Start Consumer(app-id: checkout)
     ```
